@@ -1,0 +1,42 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    // Language and Environment
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    
+    // Modules - MODERN SETTINGS
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    
+    // Output
+    "outDir": "./dist",
+    "rootDir": ".",
+    
+    // Strict Type Checking
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // JSON and Modules
+    "resolveJsonModule": true,
+    
+    // Type Definitions
+    "types": ["node", "@playwright/test"]
+  },
+  
+  // Files to include
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "playwright.config.ts"
+  ],
+  
+  // Files to exclude
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test-results"
+  ]
+}

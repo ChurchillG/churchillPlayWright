@@ -1,14 +1,21 @@
 {
-  "name": "churchillplaywright",
+  "name": "churchill-playwright",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "description": "A Playwright-based test automation framework for end-to-end testing",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:invoice": "playwright test tests/invoice.spec.ts",
+    "test:chrome": "playwright test --project=chromium",
+    "report": "playwright show-report",
+    "clean": "rimraf test-results && rimraf playwright-report"
+  },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
-    "@types/node": "^26.0.1"
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "csv-parse": "^5.5.0",
+    "typescript": "^5.3.0"
   }
 }
