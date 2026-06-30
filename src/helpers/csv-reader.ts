@@ -1,74 +1,83 @@
 // src/helpers/csv-reader.ts
 
 import fs from 'fs';
-import { parse } from 'csv-parse/sync';
 
 /**
  * Interface for CSV records
  * Each record is a key-value pair where:
  * - key: column header from the CSV file
  * - value: the cell data
- * 
- * @example
- * {
- *   username: 'admin',
- *   password: 'admin123',
- *   role: 'Administrator'
- * }
  */
 export interface CsvRecord {
     [key: string]: string;
 }
 
 /**
- * Reads a CSV file and returns an array of objects
- * Each object represents a row in the CSV file
- * The column headers become the keys of each object
- * 
- * @param filePath - Path to the CSV file
- * @returns Array of CsvRecord objects
- * 
- * @example
- * // Read login data
- * const loginData = readCsv('src/test-data/login-data.csv');
- * // loginData[0] = { username: 'admin', password: 'admin123', role: 'Administrator' }
- * 
- * @example
- * // Use in a test
- * const data = readCsv('src/test-data/invoice-data.csv');
- * console.log(data[0].clientName);  // "Your Name Pty Ltd"
- * console.log(data[0].totalAmount); // "R2800"
+ * Internal CSV parser
+ * Parses CSV content string into an array of objects
  */
-export function readCsv(filePath: string): CsvRecord[] {
-    // Read the CSV file from the given path
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-
-    // Parse the CSV content into an array of objects
-    return parse(fileContent, {
-        columns: true,           // First row becomes column headers
-        skip_empty_lines: true,  // Skip any empty lines in the file
-        delimiter: ';'           // Semicolon delimiter (change to ',' if needed)
-    });
+function parseCSV(csvContent: string, delimiter: string = ';'): CsvRecord[] {
+    const lines = csvContent.trim().split('\n');
+    const nonEmptyLines = lines.filter(line => line.trim() !== '');
+    
+    if (nonEmptyLines.length === 0) {
+        return [];
+    }
+    
+    const headers = nonEmptyLines[0].split(delimiter).map(header => header.trim());
+    const records: CsvRecord[] = [];
+    
+    for (let i = 1; i < nonEmptyLines.length; i++) {
+        const values = nonEmptyLines[i].split(delimiter).map(value => value.trim());
+        const record: CsvRecord = {};
+        
+        headers.forEach((header, index) => {
+            record[header] = values[index] || '';
+        });
+        
+        records.push(record);
+    }
+    
+    return records;
 }
 
 /**
- * Reads a CSV file and returns a Map for easy lookup by a specific column
+ * Reads a CSV file and returns an array of CsvRecord objects
+ * 
+ * @param filePath - Path to the CSV file
+ * @param delimiter - CSV delimiter character (default: ';')
+ * @returns Array of CsvRecord objects
+ * 
+ * @example
+ * const data = readCsv('src/test-data/login-data.csv');
+ * console.log(data[0].username); // 'admin'
+ */
+export function readCsv(filePath: string, delimiter: string = ';'): CsvRecord[] {
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    return parseCSV(fileContent, delimiter);
+}
+
+/**
+ * Reads a CSV file and returns a Map for easy lookup
  * 
  * @param filePath - Path to the CSV file
  * @param keyColumn - The column name to use as the map key
- * @returns Map with the specified column as key and the row as value
+ * @param delimiter - CSV delimiter character (default: ';')
+ * @returns Map with specified column as key and row object as value
  * 
  * @example
- * // Get login data as a Map keyed by username
  * const loginMap = readCsvAsMap('src/test-data/login-data.csv', 'username');
  * const adminData = loginMap.get('admin');
  * console.log(adminData.password); // 'admin123'
  */
-export function readCsvAsMap(filePath: string, keyColumn: string): Map<string, CsvRecord> {
-    const records = readCsv(filePath);
+export function readCsvAsMap(
+    filePath: string, 
+    keyColumn: string, 
+    delimiter: string = ';'
+): Map<string, CsvRecord> {
+    const records = readCsv(filePath, delimiter);
     const map = new Map<string, CsvRecord>();
     
-    // Loop through each record and add to map
     records.forEach((record) => {
         if (record[keyColumn]) {
             map.set(record[keyColumn], record);
@@ -76,4 +85,42 @@ export function readCsvAsMap(filePath: string, keyColumn: string): Map<string, C
     });
     
     return map;
+}
+
+/**
+ * Converts a CsvRecord to a typed object
+ * This bridges the gap between dynamic CSV data and typed TypeScript interfaces
+ * 
+ * @param record - The CSV record to convert
+ * @returns The record cast to type T
+ * 
+ * @example
+ * const csvData = readCsv('data.csv');
+ * const invoiceData = csvRecordToType<InvoiceData>(csvData[0]);
+ * // Now TypeScript recognizes invoiceData.clientName, etc.
+ */
+export function csvRecordToType<T>(record: CsvRecord): T {
+    return record as unknown as T;
+}
+
+/**
+ * Reads CSV and automatically converts to the specified type
+ * This is the easiest way to get typed data from CSV files
+ * 
+ * @param filePath - Path to the CSV file
+ * @param delimiter - CSV delimiter character (default: ';')
+ * @returns Array of typed objects
+ * 
+ * @example
+ * interface InvoiceData {
+ *     clientName: string;
+ *     totalAmount: string;
+ * }
+ * 
+ * const invoices = readCsvAsType<InvoiceData>('src/test-data/invoice-data.csv');
+ * console.log(invoices[0].clientName); // TypeScript knows this exists!
+ */
+export function readCsvAsType<T>(filePath: string, delimiter: string = ';'): T[] {
+    const records = readCsv(filePath, delimiter);
+    return records.map(record => csvRecordToType<T>(record));
 }

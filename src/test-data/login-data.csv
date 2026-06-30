@@ -1,5 +1,3 @@
-// src/test-data/login-data.csv
-
 username;password;role;expectedRedirect
 admin;admin123;Administrator;/dashboard
-testuser;test123;User
+testuser;test123;User;/home
