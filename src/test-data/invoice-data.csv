@@ -1,0 +1,4 @@
+// src/test-data/invoice-data.csv
+
+clientName;clientAddress;course1;course1Description;course2;course2Description;course3;course3Description;course4;course4Description;totalAmount;dueDate;status
+Your Name Pty Ltd;123 Fake Street;Web Development;Learn to build websites;Data Science;Analyze data with Python;Cloud Computing;Master AWS and Azure;Cybersecurity;Protect networks from hackers;R2800;2026-06-30;Paid
