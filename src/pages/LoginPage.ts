@@ -14,45 +14,89 @@ import { BasePage } from '../helpers/base-page';
  * - this.basePageEnterText()
  * - this.basePageVerifyElementIsVisible()
  * 
- * Think of it like:
- * BasePage = Basic tools (hammer, screwdriver)
- * LoginPage = Basic tools + Login-specific tools (key, lock pick)
+ * This page handles a TWO-STEP login process:
+ * Step 1: Click the initial login button to reveal the login form
+ * Step 2: Enter credentials and click the submit login button
+ * 
+ * Uses getByRole() for better accessibility and reliability
  */
 export class LoginPage extends BasePage {
     
     /**
-     * Locators - These define HOW to find elements on the login page
+     * Locators - Using getByRole() for accessibility-first selectors
      * 
-     * We use 'get' methods instead of regular properties because:
-     * - Locators are re-evaluated each time they're accessed
-     * - This ensures we always get the latest state of the element
-     * - Important for dynamic pages where elements might change
+     * Benefits of getByRole():
+     * - More reliable than CSS selectors
+     * - Better for accessibility testing
+     * - Closer to how users actually interact with the page
+     * - Built-in ARIA role support
      */
+    
+    // STEP 1: Initial login button that reveals the login form
+    private get initialLoginButton(): Locator {
+        // Using getByRole with button role and name filter
+        return this.page.getByRole('button', { name: /login/i });
+    }
+
+    // STEP 2: Login form elements that appear after clicking initial login button
     
     // Username input field
     private get usernameField(): Locator {
-        return this.page.locator('input[name="username"], input#username, [data-testid="username"]');
+        // Using getByRole with textbox role and name/label
+        return this.page.getByRole('textbox', { name: /loginEmail/i });
     }
 
     // Password input field
     private get passwordField(): Locator {
-        return this.page.locator('input[name="password"], input#password, [data-testid="password"]');
+        // Using getByRole with textbox role for password (it's still a textbox)
+        // You can also use getByLabel if there's a label
+        return this.page.getByRole('textbox', { name: /loginPassword/i });
     }
 
-    // Login button
-    private get loginButton(): Locator {
-        return this.page.locator('button[type="submit"], button:has-text("Login"), [data-testid="login-button"]');
+    // Alternative: Using getByPlaceholder if no label/role
+    //private get passwordFieldByPlaceholder(): Locator {
+      //  return this.page.getByPlaceholder(/password/i);
+    //}
+
+    // STEP 2: Submit login button (the actual credential submission)
+    private get submitLoginButton(): Locator {
+        // Using getByRole with button role and name filter
+        // This finds a button that has text containing "login" or "sign in"
+        return this.page.getByRole('button', { name: /loginSubmit/i });
     }
+
+    // Login form container (to verify form is visible)
+    private get loginForm(): Locator {
+        // Using getByRole for the form
+        return this.page.locator('#login-card');
+    }
+
+    // Alternative: Using getByTestId if you have data-testid attributes
+   // private get loginFormByTestId(): Locator {
+     //   return this.page.getByTestId('login-form');
+   // }
 
     // Error message (shows when login fails)
     private get errorMessage(): Locator {
-        return this.page.locator('.error-message, .alert-danger, [data-testid="error"]');
+        // Using getByRole for alert/status messages
+        return this.page.getByRole('alert');
     }
+
+    // Alternative: Using getByText for error message
+    //private get errorMessageByText(): Locator {
+        //return this.page.getByText(/error|invalid|incorrect/i);
+    //}
 
     // Dashboard indicator (shows when login succeeds)
     private get dashboardIndicator(): Locator {
-        return this.page.locator('.dashboard, [data-testid="dashboard"], .admin-panel');
+        // Using getByRole for heading or navigation
+        return this.page.locator('.dashboard-welcome');
     }
+
+    // Alternative: Using getByTestId
+   // private get dashboardIndicatorByTestId(): Locator {
+       // return this.page.getByTestId('dashboard');
+   // }
 
     constructor(page: Page) {
         super(page); // Call BasePage constructor - REQUIRED when extending
@@ -63,44 +107,69 @@ export class LoginPage extends BasePage {
      * Uses the inherited basePageGoToUrl method from BasePage
      */
     async goto(): Promise<void> {
-        await this.basePageGoToUrl('/login');
+        await this.basePageGoToUrl('/');
         await this.basePageWaitForLoad();
     }
 
     /**
-     * Enter username in the username field
+     * STEP 1: Click the initial login button to reveal the login form
+     * This is the first click that triggers the login flow
+     */
+    async clickInitialLoginButton(): Promise<void> {
+        console.log('Step 1: Clicking initial login button to reveal form');
+        await this.basePageClickElement(this.initialLoginButton);
+        await this.basePageWaitForLoad();
+        
+        // Wait for the login form to appear
+        await this.basePageWaitForElement(this.loginForm, 10000);
+        console.log('✓ Login form is now visible');
+    }
+
+    /**
+     * STEP 2: Enter username in the username field
      * @param username - The username to type
      * Uses the inherited basePageEnterText method from BasePage
      */
     async enterUsername(username: string): Promise<void> {
+        console.log(`Step 2a: Entering username: ${username}`);
         await this.basePageEnterText(this.usernameField, username);
     }
 
     /**
-     * Enter password in the password field
+     * STEP 2: Enter password in the password field
      * @param password - The password to type
      */
     async enterPassword(password: string): Promise<void> {
+        console.log('Step 2b: Entering password');
         await this.basePageEnterText(this.passwordField, password);
     }
 
     /**
-     * Click the login button
+     * STEP 2: Click the submit login button to authenticate
+     * This is the second click that submits credentials
      */
-    async clickLoginButton(): Promise<void> {
-        await this.basePageClickElement(this.loginButton);
+    async clickSubmitLoginButton(): Promise<void> {
+        console.log('Step 2c: Clicking submit login button');
+        await this.basePageClickElement(this.submitLoginButton);
+        await this.basePageWaitForLoad();
     }
 
     /**
-     * Complete login process: enter credentials and click login
+     * Complete TWO-STEP login process: 
+     * Step 1: Click initial login button
+     * Step 2: Enter credentials and submit
+     * 
      * @param username - Username
      * @param password - Password
      */
     async login(username: string, password: string): Promise<void> {
+        // STEP 1: Click initial login button to reveal form
+        await this.clickInitialLoginButton();
+        
+        // STEP 2: Enter credentials and submit
         await this.enterUsername(username);
         await this.enterPassword(password);
-        await this.clickLoginButton();
-        await this.basePageWaitForLoad();
+        await this.clickSubmitLoginButton();
     }
 
     /**
@@ -120,7 +189,7 @@ export class LoginPage extends BasePage {
             console.log('✓ Login successful');
         } catch (error) {
             // If no dashboard, check for error message
-            const errorText = await this.basePageGetElementText(this.errorMessage);
+            const errorText = await this.getErrorMessage();
             if (errorText) {
                 throw new Error(`Login failed: ${errorText}`);
             }
@@ -147,5 +216,43 @@ export class LoginPage extends BasePage {
             return await this.basePageGetElementText(this.errorMessage);
         }
         return '';
+    }
+
+    /**
+     * Check if the login form is currently visible
+     * @returns boolean - true if form is visible
+     */
+    async isLoginFormVisible(): Promise<boolean> {
+        return await this.basePageIsElementVisible(this.loginForm);
+    }
+
+    /**
+     * Wait for the login form to appear
+     * Useful if you want to separate the steps manually
+     */
+    async waitForLoginForm(): Promise<void> {
+        await this.basePageWaitForElement(this.loginForm, 10000);
+    }
+
+    /**
+     * Get the current value in the username field
+     * @returns string - Current username value
+     */
+    async getUsernameValue(): Promise<string> {
+        return await this.basePageGetTextValue(this.usernameField);
+    }
+
+    /**
+     * Clear the username field
+     */
+    async clearUsername(): Promise<void> {
+        await this.usernameField.clear();
+    }
+
+    /**
+     * Clear the password field
+     */
+    async clearPassword(): Promise<void> {
+        await this.passwordField.clear();
     }
 }
