@@ -4,280 +4,504 @@ import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 
 /**
- * InvoicePage - Represents the invoice management page
+ * InvoicePage - Represents the invoice modal/page
  * 
- * This page handles all invoice operations:
- * - Creating new invoices
- * - Adding courses to invoices
- * - Setting payment details
- * - Validating invoice creation
+ * EXTENDS BasePage:
+ * This means InvoicePage inherits all methods from BasePage
+ * Examples of inherited methods:
+ * - this.basePageGoToUrl()
+ * - this.basePageClickElement()
+ * - this.basePageEnterText()
+ * - this.basePageVerifyElementIsVisible()
+ * - this.basePageWaitForElement()
+ * - this.basePageIsElementVisible()
+ * - this.basePageGetElementText()
  * 
- * All methods use the inherited basePage* methods from BasePage
+ * This page handles invoice creation within a modal:
+ * Step 1: Verify invoice modal is visible with header
+ * Step 2: Fill in client name and address
+ * Step 3: Click Add Course button 4 times
+ * Step 4: For each course, select the last valid option from dropdown
+ * Step 5: Verify total amount is R2800
+ * Step 6: Set due date to last day of June
+ * Step 7: Select status (Paid/Pending)
+ * Step 8: Click Create Invoice button
+ * Step 9: Verify alert success message
+ * 
+ * Uses getByRole() and getByPlaceholder() for better accessibility and reliability
  */
 export class InvoicePage extends BasePage {
     
-    // ============ Locators ============
+    /**
+     * Locators - Using getByRole() and getByPlaceholder() for accessibility-first selectors
+     * Using CSS selectors where ARIA roles are not available
+     */
     
-    // Page identification
-    private get invoicePageHeader(): Locator {
-        return this.page.locator('h1:has-text("Invoice"), h2:has-text("Invoice"), [data-testid="invoice-page"]');
+    // ============ Modal Locators ============
+    
+    // Invoice modal container
+    private get invoiceModal(): Locator {
+        // Using CSS selector for the modal
+        return this.page.locator('.invoice-modal');
     }
 
-    // Buttons
-    private get createInvoiceButton(): Locator {
-        return this.page.locator('button:has-text("Create Invoice"), a:has-text("Create Invoice"), [data-testid="create-invoice"]');
+    // Alternative: Using getByTestId
+    // private get invoiceModal(): Locator {
+    //     return this.page.getByTestId('invoice-modal');
+    // }
+
+    // Modal header - "➕ Create New Invoice"
+    private get invoiceModalHeader(): Locator {
+        // Using getByRole for heading
+        return this.page.getByRole('heading', { name: /➕ create new invoice/i });
     }
 
-    private get addCourseButton(): Locator {
-        return this.page.locator('button:has-text("Add Course"), button:has-text("Add Item"), [data-testid="add-course"]');
-    }
+    // Alternative: Using getByText
+    // private get invoiceModalHeader(): Locator {
+    //     return this.page.getByText(/create new invoice/i);
+    // }
 
-    private get submitButton(): Locator {
-        return this.page.locator('button:has-text("Create"), button[type="submit"], [data-testid="submit-invoice"]');
-    }
-
-    // Client information fields
+    // ============ Client Information Fields ============
+    
+    // Client name input (textbox) - using placeholder
     private get clientNameInput(): Locator {
-        return this.page.locator('input[name="clientName"], input#clientName, [data-testid="client-name"]');
+        // Using getByPlaceholder for the input field
+        return this.page.getByPlaceholder(/Type client name or email.../i);
     }
 
+    // Alternative: Using getByPlaceholder with exact text
+    // private get clientNameInput(): Locator {
+    //     return this.page.getByPlaceholder('Type client name or email...');
+    // }
+
+    // Client address input (textarea) - using placeholder
     private get clientAddressInput(): Locator {
-        return this.page.locator('input[name="clientAddress"], textarea[name="address"], [data-testid="client-address"]');
+        // Using getByPlaceholder for the textarea
+        return this.page.getByPlaceholder(/Enter client address.../i);
     }
 
-    // Course fields - index-based to handle multiple courses
-    private getCourseSelect(index: number): Locator {
-        return this.page.locator(`select:nth-of-type(${index}), [data-testid="course-select-${index}"]`);
+    // Alternative: Using getByPlaceholder with exact text
+    // private get clientAddressInput(): Locator {
+    //     return this.page.getByPlaceholder('Enter client address...');
+    // }
+
+    // Alternative: Using CSS selector for textarea
+    // private get clientAddressInput(): Locator {
+    //     return this.page.locator('textarea[placeholder*="Enter client address" i]');
+    // }
+
+    // ============ Course Elements ============
+    
+    // Add Course button
+    private get addCourseButton(): Locator {
+        // Using getByRole for button
+        return this.page.getByRole('button', { name: /➕ add course/i });
     }
 
-    private getCourseDescription(index: number): Locator {
-        return this.page.locator(`textarea:nth-of-type(${index}), [data-testid="course-description-${index}"]`);
+    // Alternative: Using getByTestId
+    // private get addCourseButton(): Locator {
+    //     return this.page.getByTestId('add-course');
+    // }
+
+    // Course dropdown - for each course row
+    private getCourseDropdown(index: number): Locator {
+        // Using CSS selector with nth-of-type for select elements
+        return this.page.locator(`select:nth-of-type(${index})`);
     }
 
-    // Invoice details
-    private get totalAmountInput(): Locator {
-        return this.page.locator('[data-testid="total-amount"], #totalAmount, input[name="totalAmount"]');
-    }
+    // Alternative: Using getByTestId with index
+    // private getCourseDropdown(index: number): Locator {
+    //     return this.page.getByTestId(`course-select-${index}`);
+    // }
 
-    private get dueDateInput(): Locator {
-        return this.page.locator('input[type="date"], input[name="dueDate"], [data-testid="due-date"]');
-    }
-
-    private get statusDropdown(): Locator {
-        return this.page.locator('select[name="status"], [data-testid="status-select"]');
-    }
-
-    // Invoice list and validation
-    private get invoiceList(): Locator {
-        return this.page.locator('.invoice-list, table, [data-testid="invoice-list"]');
-    }
-
-    private getInvoiceRow(clientName: string): Locator {
-        return this.page.locator(`tr:has-text("${clientName}"), .invoice-item:has-text("${clientName}")`);
-    }
-
-    private get successMessage(): Locator {
-        return this.page.locator('.success-message, .alert-success, [data-testid="success-message"]');
-    }
-
+    // ============ Invoice Details ============
+    
+    // Total amount span (to verify R2800)
     private get totalAmountDisplay(): Locator {
-        return this.page.locator('.total-amount-display, .amount, [data-testid="amount-display"]');
+        // Using getByText to find the span with total
+        return this.page.getByText(/R 2 800,00/i);
     }
+
+    // Alternative: Using CSS selector
+    // private get totalAmountDisplay(): Locator {
+    //     return this.page.locator('span.total-amount, .total-amount');
+    // }
+
+    // Alternative: Using getByTestId
+    // private get totalAmountDisplay(): Locator {
+    //     return this.page.getByTestId('total-amount');
+    // }
+
+    // Due date input (type="date")
+    private get dueDateInput(): Locator {
+        // Using CSS selector for date input
+        return this.page.locator('input[type="date"]');
+    }
+
+    // Alternative: Using getByLabel
+    // private get dueDateInput(): Locator {
+    //     return this.page.getByLabel(/due date/i);
+    // }
+
+    // Alternative: Using getByTestId
+    // private get dueDateInput(): Locator {
+    //     return this.page.getByTestId('due-date');
+    // }
+
+    // Status dropdown (Paid/Pending)
+    private get statusDropdown(): Locator {
+    // More specific - targets select with options "Pending" and "Paid"
+    return this.page.locator('select:has(option[value="pending"]):has(option[value="paid"])');
+}
+
+    // Alternative: Using getByTestId
+    // private get statusDropdown(): Locator {
+    //     return this.page.getByTestId('status-select');
+    // }
+
+    // Alternative: Using CSS selector
+    // private get statusDropdown(): Locator {
+    //     return this.page.locator('select[name="status"]');
+    // }
+
+    // ============ Action Buttons ============
+    
+    // Create Invoice button
+    private get createInvoiceButton(): Locator {
+        // Using getByRole for button
+        return this.page.getByRole('button', { name: /✅ Create Invoice/i });
+    }
+
+    // Alternative: Using getByTestId
+    // private get createInvoiceButton(): Locator {
+    //     return this.page.getByTestId('create-invoice');
+    // }
+
+    // ============ Validation Locators ============
+    
+    // Alert success message
+    private get successAlert(): Locator {
+        // Using getByRole for alert
+        return this.page.getByRole('alert');
+    }
+
+    // Alternative: Using getByText
+    // private get successAlert(): Locator {
+    //     return this.page.getByText(/invoice created successfully/i);
+    // }
+
+    // Alternative: Using CSS selector
+    // private get successAlert(): Locator {
+    //     return this.page.locator('.alert-success, .success-message');
+    // }
 
     constructor(page: Page) {
-        super(page);
+        super(page); // Call BasePage constructor - REQUIRED when extending
     }
 
     // ============ Page Actions ============
 
     /**
-     * Wait for the invoice page to load
+     * STEP 1: Wait for the invoice modal to load and verify header is visible
+     * Uses inherited basePageWaitForElement and basePageWaitForLoad methods
      */
-    async waitForInvoicePage(): Promise<void> {
+    async waitForInvoiceModal(): Promise<void> {
+        console.log('Waiting for invoice modal to load...');
         await this.basePageWaitForLoad();
-        await this.basePageWaitForElement(this.invoicePageHeader);
+        await this.basePageWaitForElement(this.invoiceModal, 10000);
+        await this.basePageWaitForElement(this.invoiceModalHeader, 10000);
+        console.log(' Invoice modal is visible');
     }
 
     /**
-     * Click "Create Invoice" button to open the invoice form
+     * STEP 1: Verify the invoice modal header is visible
+     * Uses inherited basePageVerifyElementIsVisible method
      */
-    async clickCreateInvoice(): Promise<void> {
-        console.log('Clicking Create Invoice button...');
-        await this.basePageClickElement(this.createInvoiceButton);
-        await this.basePageWaitForElement(this.clientNameInput);
+    async verifyModalHeader(): Promise<void> {
+        console.log('Verifying "➕ Create New Invoice" header is visible...');
+        await this.basePageVerifyElementIsVisible(this.invoiceModalHeader);
+        console.log(' Modal header is visible');
     }
 
     /**
-     * Fill in the client's name and address
-     * @param clientName - Client's full name (e.g., "Your Name Pty Ltd")
-     * @param clientAddress - Client's address (e.g., "123 Fake Street")
+     * STEP 2: Fill in the client's name and address
+     * @param clientName - Client's full name (e.g., "churchill@gmail.com")
+     * @param clientAddress - Client's address (e.g., "birdswood")
+     * Uses inherited basePageEnterText methods
      */
     async fillClientInformation(clientName: string, clientAddress: string): Promise<void> {
         console.log(`Filling client info - Name: ${clientName}`);
         await this.basePageEnterText(this.clientNameInput, clientName);
         await this.basePageEnterText(this.clientAddressInput, clientAddress);
+        console.log(' Client information filled');
     }
 
     /**
-     * Add a single course to the invoice
+     * STEP 3: Click the Add Course button
+     * Uses inherited basePageClickElement method
+     */
+    async clickAddCourseButton(): Promise<void> {
+        console.log('Clicking Add Course button...');
+        await this.basePageClickElement(this.addCourseButton);
+        await this.page.waitForTimeout(500); // Wait for DOM update
+        console.log(' Add Course button clicked');
+    }
+
+    /**
+     * STEP 4: Select the last valid course option from a dropdown
      * @param index - Course number (1, 2, 3, or 4)
-     * @param courseName - Name of the course
-     * @param description - Description of the course
+     * Uses inherited basePageSelectOption method
      */
-    async addCourse(index: number, courseName: string, description: string): Promise<void> {
-        console.log(`Adding course ${index}: ${courseName}`);
+    async selectLastCourseOption(index: number): Promise<void> {
+        console.log(`Selecting last course option for course ${index}...`);
         
-        // Click "Add Course" button for courses 2, 3, and 4
-        if (index > 1) {
-            await this.basePageClickElement(this.addCourseButton);
-            await this.page.waitForTimeout(500); // Wait for DOM update
+        // Get the dropdown for this course
+        const dropdown = this.getCourseDropdown(index);
+        
+        // Get all options from the dropdown
+        const options = await dropdown.locator('option').all();
+        
+        // Find the last valid option (skip placeholder)
+        let lastValidIndex = -1;
+        let lastValidText = '';
+        
+        for (let i = options.length - 1; i >= 0; i--) {
+            const text = await options[i].textContent();
+            const value = await options[i].getAttribute('value');
+            
+            // Skip the placeholder option
+            if (value && value !== 'select course...' && text && text.trim() !== 'select course...') {
+                lastValidIndex = i;
+                lastValidText = text.trim();
+                break;
+            }
         }
         
-        // Select course from dropdown
-        await this.basePageSelectOption(this.getCourseSelect(index), courseName);
-        
-        // Enter course description
-        await this.basePageEnterText(this.getCourseDescription(index), description);
-    }
-
-    /**
-     * Add multiple courses at once
-     * @param courses - Array of {name, description} objects
-     * 
-     * @example
-     * await invoicePage.addMultipleCourses([
-     *   { name: 'Web Development', description: 'Learn HTML, CSS, JS' },
-     *   { name: 'Data Science', description: 'Python for data' },
-     *   { name: 'Cloud Computing', description: 'AWS basics' },
-     *   { name: 'Cybersecurity', description: 'Security basics' }
-     * ]);
-     */
-    async addMultipleCourses(courses: Array<{ name: string; description: string }>): Promise<void> {
-        for (let i = 0; i < courses.length; i++) {
-            await this.addCourse(i + 1, courses[i].name, courses[i].description);
+        if (lastValidIndex >= 0) {
+            // Select by index
+            await dropdown.selectOption({ index: lastValidIndex });
+            console.log(` Selected course option: ${lastValidText}`);
+        } else {
+            console.log('No valid course options found in dropdown');
         }
     }
 
     /**
-     * Set the total amount for the invoice
-     * @param amount - Total amount (e.g., "R2800")
+     * STEP 3 & 4: Add 4 courses by clicking Add Course button 4 times
+     * and selecting the last valid option from each dropdown
      */
-    async setTotalAmount(amount: string): Promise<void> {
-        console.log(`Setting total amount: ${amount}`);
-        await this.basePageEnterText(this.totalAmountInput, amount);
+    async addFourCourses(): Promise<void> {
+        console.log('Adding 4 courses...');
+        
+        // Click Add Course button and select last option for each course
+        for (let i = 1; i <= 4; i++) {
+            if (i > 1) {
+                // Click Add Course button for courses 2, 3, and 4
+                await this.clickAddCourseButton();
+            }
+            
+            // Select the last valid option from the dropdown
+            await this.selectLastCourseOption(i);
+        }
+        
+        console.log(' All 4 courses added');
     }
 
     /**
-     * Set the due date for the invoice
-     * @param date - Due date in YYYY-MM-DD format (e.g., "2026-06-30")
+     * STEP 5: Verify the total amount is R2800
+     * Uses inherited basePageVerifyElementIsVisible method
      */
-    async setDueDate(date: string): Promise<void> {
-        console.log(`Setting due date: ${date}`);
+    async verifyTotalAmount(): Promise<void> {
+        console.log('Verifying total amount is R2800...');
+        await this.basePageWaitForElement(this.totalAmountDisplay, 10000);
+        await this.basePageVerifyElementIsVisible(this.totalAmountDisplay);
+        console.log('Total amount is R2800');
+    }
+
+    /**
+     * STEP 6: Set the due date to the last day of June
+     * @param date - Due date in YYYY-MM-DD format (default: "2026-06-30")
+     * Uses inherited basePageEnterText method
+     */
+    async setDueDate(date: string = '2026-06-30'): Promise<void> {
+        console.log(`Setting due date to: ${date}`);
         await this.basePageEnterText(this.dueDateInput, date);
+        console.log(' Due date set');
     }
 
     /**
-     * Set the status of the invoice
-     * @param status - Status value (e.g., "Paid", "Pending")
+     * STEP 7: Set the status of the invoice
+     * @param status - Status value ("Paid" or "Pending")
+     * Uses inherited basePageSelectOption method
      */
     async setStatus(status: string): Promise<void> {
-        console.log(`Setting status: ${status}`);
+        console.log(`Setting status to: ${status}`);
         await this.basePageSelectOption(this.statusDropdown, status);
+        console.log(' Status set');
     }
 
     /**
-     * Click submit to create the invoice
+     * STEP 8: Click the Create Invoice button
+     * Uses inherited basePageClickElement and basePageWaitForLoad methods
      */
-    async submitInvoice(): Promise<void> {
-        console.log('Submitting invoice...');
-        await this.basePageClickElement(this.submitButton);
+    async clickCreateInvoice(): Promise<void> {
+        console.log('Clicking Create Invoice button...');
+        await this.basePageClickElement(this.createInvoiceButton);
         await this.basePageWaitForLoad();
+        console.log(' Create Invoice button clicked');
     }
 
     /**
-     * Validate that the invoice was created successfully
-     * @param clientName - The client name to look for
+     * STEP 9: Verify the alert success message
+     * Uses inherited basePageWaitForElement and basePageVerifyElementIsVisible methods
      */
-    async validateInvoiceCreated(clientName: string): Promise<void> {
-        console.log(`Validating invoice for: ${clientName}`);
-        
-        try {
-            // Look for success message
-            await this.basePageWaitForElement(this.successMessage, 5000);
-            await this.basePageVerifyElementContainsText(this.successMessage, 'success');
-            console.log('✓ Invoice created successfully');
-        } catch {
-            // If no success message, check if invoice appears in list
-            await this.basePageWaitForElement(this.getInvoiceRow(clientName));
-            await this.basePageVerifyElementIsVisible(this.getInvoiceRow(clientName));
-            console.log('✓ Invoice found in list');
-        }
+    async verifySuccessAlert(): Promise<void> {
+        console.log('Verifying success alert...');
+        await this.basePageWaitForElement(this.successAlert, 10000);
+        await this.basePageVerifyElementIsVisible(this.successAlert);
+        console.log('Invoice creation success alert displayed');
     }
 
     /**
-     * Validate the total amount displayed
-     * @param expectedAmount - Expected amount (e.g., "R2800")
-     */
-    async validateTotalAmount(expectedAmount: string): Promise<void> {
-        console.log(`Validating total amount: ${expectedAmount}`);
-        await this.basePageVerifyElementContainsText(this.totalAmountDisplay, expectedAmount);
-        console.log('✓ Total amount is correct');
-    }
-
-    /**
-     * Complete invoice creation - does everything in one method
-     * @param invoiceData - All invoice data
+     * Complete flow to create an invoice with all steps
      * 
-     * This follows the exact steps from your requirements:
-     * 1. Fill client info (Your Name Pty Ltd, fake address)
-     * 2. Add 4 courses with descriptions
-     * 3. Validate R2800 as total
-     * 4. Set due date to last day of June
-     * 5. Set status to Paid
-     * 6. Click create invoice
-     * 7. Validate invoice is created
+     * Steps:
+     * 1. Verify modal header is visible
+     * 2. Fill client name: "churchill@gmail.com"
+     * 3. Fill client address: "birdswood"
+     * 4. Click Add Course button (4 times)
+     * 5. For each course, select the last valid option from dropdown
+     * 6. Verify total amount is R2800
+     * 7. Set due date to last day of June (2026-06-30)
+     * 8. Set status to "Paid"
+     * 9. Click Create Invoice
+     * 10. Verify success alert
+     * 
+     * Usage:
+     * await invoicePage.createInvoiceToYourself();
      */
-    async createCompleteInvoice(invoiceData: InvoiceData): Promise<void> {
-        // Step 1: Fill client information
-        await this.fillClientInformation(invoiceData.clientName, invoiceData.clientAddress);
+    async createInvoiceToYourself(): Promise<void> {
+        console.log('=== Starting Invoice Creation Flow ===');
         
-        // Step 2: Add 4 courses
-        await this.addMultipleCourses([
-            { name: invoiceData.course1, description: invoiceData.course1Description },
-            { name: invoiceData.course2, description: invoiceData.course2Description },
-            { name: invoiceData.course3, description: invoiceData.course3Description },
-            { name: invoiceData.course4, description: invoiceData.course4Description },
-        ]);
+        // STEP 1: Verify modal header is visible
+        await this.verifyModalHeader();
         
-        // Step 3: Set invoice details
-        await this.setTotalAmount(invoiceData.totalAmount);
-        await this.setDueDate(invoiceData.dueDate);
-        await this.setStatus(invoiceData.status);
+        // STEP 2 & 3: Fill client information
+        await this.fillClientInformation('churchill@gmail.com', 'birdswood');
         
-        // Step 4: Submit the invoice
-        await this.submitInvoice();
+        // STEP 4 & 5: Add 4 courses
+        await this.addFourCourses();
         
-        // Step 5: Validate invoice was created
-        await this.validateInvoiceCreated(invoiceData.clientName);
+        // STEP 6: Verify total amount is R2800
+        await this.verifyTotalAmount();
+        
+        // STEP 7: Set due date to last day of June
+        await this.setDueDate('2026-06-30');
+        
+        // STEP 8: Set status to Paid
+        await this.setStatus('Paid');
+        
+        // STEP 9: Click Create Invoice
+        await this.clickCreateInvoice();
+        
+        // STEP 10: Verify success alert
+        await this.verifySuccessAlert();
+        
+        console.log('=== Invoice Creation Completed Successfully ===');
     }
-}
 
-/**
- * Interface for invoice data
- * Defines the structure of data needed to create an invoice
- */
-export interface InvoiceData {
-    clientName: string;
-    clientAddress: string;
-    course1: string;
-    course1Description: string;
-    course2: string;
-    course2Description: string;
-    course3: string;
-    course3Description: string;
-    course4: string;
-    course4Description: string;
-    totalAmount: string;
-    dueDate: string;
-    status: string;
+    /**
+     * Complete flow to create an invoice with custom data
+     * @param invoiceData - Custom invoice data
+     * 
+     * Usage:
+     * await invoicePage.createInvoice({
+     *   clientName: 'john@gmail.com',
+     *   clientAddress: 'cape town',
+     *   status: 'Pending',
+     *   dueDate: '2026-07-15'
+     * });
+     */
+    async createInvoice(invoiceData: {
+        clientName?: string;
+        clientAddress?: string;
+        status?: string;
+        dueDate?: string;
+    } = {}): Promise<void> {
+        console.log('=== Starting Custom Invoice Creation ===');
+        
+        // STEP 1: Verify modal header is visible
+        await this.verifyModalHeader();
+        
+        // STEP 2 & 3: Fill client information (with defaults)
+        await this.fillClientInformation(
+            invoiceData.clientName || 'churchill@gmail.com',
+            invoiceData.clientAddress || 'birdswood'
+        );
+        
+        // STEP 4 & 5: Add 4 courses
+        await this.addFourCourses();
+        
+        // STEP 6: Verify total amount is R2800
+        await this.verifyTotalAmount();
+        
+        // STEP 7: Set due date (with default)
+        await this.setDueDate(invoiceData.dueDate || '2026-06-30');
+        
+        // STEP 8: Set status (with default)
+        await this.setStatus(invoiceData.status || 'Paid');
+        
+        // STEP 9: Click Create Invoice
+        await this.clickCreateInvoice();
+        
+        // STEP 10: Verify success alert
+        await this.verifySuccessAlert();
+        
+        console.log('=== Custom Invoice Creation Completed Successfully ===');
+    }
+
+    /**
+     * Check if invoice modal is visible
+     * @returns boolean - true if modal is visible
+     * Uses inherited basePageIsElementVisible method
+     */
+    async isInvoiceModalVisible(): Promise<boolean> {
+        return await this.basePageIsElementVisible(this.invoiceModal);
+    }
+
+    /**
+     * Check if modal header is visible
+     * @returns boolean - true if header is visible
+     * Uses inherited basePageIsElementVisible method
+     */
+    async isModalHeaderVisible(): Promise<boolean> {
+        return await this.basePageIsElementVisible(this.invoiceModalHeader);
+    }
+
+    /**
+     * Get the modal header text
+     * @returns string - The header text
+     * Uses inherited basePageGetElementText method
+     */
+    async getModalHeaderText(): Promise<string> {
+        return await this.basePageGetElementText(this.invoiceModalHeader);
+    }
+
+    /**
+     * Get the success alert text
+     * @returns string - The alert text
+     * Uses inherited basePageGetElementText method
+     */
+    async getSuccessAlertText(): Promise<string> {
+        return await this.basePageGetElementText(this.successAlert);
+    }
+
+    /**
+     * Check if success alert is visible
+     * @returns boolean - true if alert is visible
+     * Uses inherited basePageIsElementVisible method
+     */
+    async isSuccessAlertVisible(): Promise<boolean> {
+        return await this.basePageIsElementVisible(this.successAlert);
+    }
 }
