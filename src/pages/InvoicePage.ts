@@ -1,5 +1,3 @@
-// src/pages/InvoicePage.ts
-
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 
@@ -41,159 +39,68 @@ export class InvoicePage extends BasePage {
     
     // Invoice modal container
     private get invoiceModal(): Locator {
-        // Using CSS selector for the modal
         return this.page.locator('.invoice-modal');
     }
 
-    // Alternative: Using getByTestId
-    // private get invoiceModal(): Locator {
-    //     return this.page.getByTestId('invoice-modal');
-    // }
-
     // Modal header - "➕ Create New Invoice"
     private get invoiceModalHeader(): Locator {
-        // Using getByRole for heading
         return this.page.getByRole('heading', { name: /➕ create new invoice/i });
     }
-
-    // Alternative: Using getByText
-    // private get invoiceModalHeader(): Locator {
-    //     return this.page.getByText(/create new invoice/i);
-    // }
 
     // ============ Client Information Fields ============
     
     // Client name input (textbox) - using placeholder
     private get clientNameInput(): Locator {
-        // Using getByPlaceholder for the input field
         return this.page.getByPlaceholder(/Type client name or email.../i);
     }
 
-    // Alternative: Using getByPlaceholder with exact text
-    // private get clientNameInput(): Locator {
-    //     return this.page.getByPlaceholder('Type client name or email...');
-    // }
-
     // Client address input (textarea) - using placeholder
     private get clientAddressInput(): Locator {
-        // Using getByPlaceholder for the textarea
         return this.page.getByPlaceholder(/Enter client address.../i);
     }
-
-    // Alternative: Using getByPlaceholder with exact text
-    // private get clientAddressInput(): Locator {
-    //     return this.page.getByPlaceholder('Enter client address...');
-    // }
-
-    // Alternative: Using CSS selector for textarea
-    // private get clientAddressInput(): Locator {
-    //     return this.page.locator('textarea[placeholder*="Enter client address" i]');
-    // }
 
     // ============ Course Elements ============
     
     // Add Course button
     private get addCourseButton(): Locator {
-        // Using getByRole for button
         return this.page.getByRole('button', { name: /➕ add course/i });
     }
 
-    // Alternative: Using getByTestId
-    // private get addCourseButton(): Locator {
-    //     return this.page.getByTestId('add-course');
-    // }
-
     // Course dropdown - for each course row
     private getCourseDropdown(index: number): Locator {
-        // Using CSS selector with nth-of-type for select elements
         return this.page.locator(`select:nth-of-type(${index})`);
     }
-
-    // Alternative: Using getByTestId with index
-    // private getCourseDropdown(index: number): Locator {
-    //     return this.page.getByTestId(`course-select-${index}`);
-    // }
 
     // ============ Invoice Details ============
     
     // Total amount span (to verify R2800)
     private get totalAmountDisplay(): Locator {
-        // Using getByText to find the span with total
         return this.page.getByText(/R 2 800,00/i);
     }
 
-    // Alternative: Using CSS selector
-    // private get totalAmountDisplay(): Locator {
-    //     return this.page.locator('span.total-amount, .total-amount');
-    // }
-
-    // Alternative: Using getByTestId
-    // private get totalAmountDisplay(): Locator {
-    //     return this.page.getByTestId('total-amount');
-    // }
-
     // Due date input (type="date")
     private get dueDateInput(): Locator {
-        // Using CSS selector for date input
         return this.page.locator('input[type="date"]');
     }
 
-    // Alternative: Using getByLabel
-    // private get dueDateInput(): Locator {
-    //     return this.page.getByLabel(/due date/i);
-    // }
-
-    // Alternative: Using getByTestId
-    // private get dueDateInput(): Locator {
-    //     return this.page.getByTestId('due-date');
-    // }
-
     // Status dropdown (Paid/Pending)
     private get statusDropdown(): Locator {
-    // More specific - targets select with options "Pending" and "Paid"
-    return this.page.locator('select:has(option[value="pending"]):has(option[value="paid"])');
-}
-
-    // Alternative: Using getByTestId
-    // private get statusDropdown(): Locator {
-    //     return this.page.getByTestId('status-select');
-    // }
-
-    // Alternative: Using CSS selector
-    // private get statusDropdown(): Locator {
-    //     return this.page.locator('select[name="status"]');
-    // }
+        return this.page.locator('select:has(option[value="pending"]):has(option[value="paid"])');
+    }
 
     // ============ Action Buttons ============
     
     // Create Invoice button
     private get createInvoiceButton(): Locator {
-        // Using getByRole for button
         return this.page.getByRole('button', { name: /✅ Create Invoice/i });
     }
-
-    // Alternative: Using getByTestId
-    // private get createInvoiceButton(): Locator {
-    //     return this.page.getByTestId('create-invoice');
-    // }
 
     // ============ Validation Locators ============
     
     // Alert success message
     private get successAlert(): Locator {
-        // Using getByRole for alert
         return this.page.getByRole('alert');
     }
-
-    // Alternative: Using getByText
-    // private get successAlert(): Locator {
-    //     return this.page.getByText(/invoice created successfully/i);
-    // }
-
-    // Alternative: Using CSS selector
-    // private get successAlert(): Locator {
-    //     return this.page.locator('.alert-success, .success-message');
-    // }
 
     constructor(page: Page) {
         super(page); // Call BasePage constructor - REQUIRED when extending
@@ -211,6 +118,18 @@ export class InvoicePage extends BasePage {
         await this.basePageWaitForElement(this.invoiceModal, 10000);
         await this.basePageWaitForElement(this.invoiceModalHeader, 10000);
         console.log(' Invoice modal is visible');
+    }
+
+    /**
+     * FIXED: Wait for the invoice page to load
+     * This method was missing and causing the test to fail
+     * Uses inherited basePageWaitForLoad method
+     */
+    async waitForInvoicePage(): Promise<void> {
+        console.log('Waiting for invoice page to load...');
+        await this.basePageWaitForLoad();
+        await this.basePageWaitForElement(this.invoiceModal, 10000);
+        console.log('✓ Invoice page loaded');
     }
 
     /**
@@ -319,6 +238,36 @@ export class InvoicePage extends BasePage {
     }
 
     /**
+     * FIXED: Validate the total amount on the invoice
+     * This method was missing and causing the test to fail
+     * 
+     * @param expectedAmount - Expected total amount (e.g., "R2800")
+     * 
+     * Usage:
+     * await invoicePage.validateTotalAmount('R2800');
+     */
+    async validateTotalAmount(expectedAmount: string): Promise<void> {
+        console.log(`Validating total amount: ${expectedAmount}`);
+        
+        // Wait for total amount to be visible
+        await this.basePageWaitForElement(this.totalAmountDisplay, 10000);
+        
+        // Get the actual total amount text
+        const actualAmount = await this.basePageGetElementText(this.totalAmountDisplay);
+        
+        console.log(`Actual amount: ${actualAmount}`);
+        console.log(`Expected amount: ${expectedAmount}`);
+        
+        // Verify the total amount matches
+        await this.basePageVerifyElementHasText(
+            this.totalAmountDisplay,
+            expectedAmount
+        );
+        
+        console.log(`✓ Total amount validated: ${expectedAmount}`);
+    }
+
+    /**
      * STEP 6: Set the due date to the last day of June
      * @param date - Due date in YYYY-MM-DD format (default: "2026-06-30")
      * Uses inherited basePageEnterText method
@@ -349,6 +298,18 @@ export class InvoicePage extends BasePage {
         await this.basePageClickElement(this.createInvoiceButton);
         await this.basePageWaitForLoad();
         console.log(' Create Invoice button clicked');
+    }
+
+    /**
+     * FIXED: Click the Create Invoice button (simplified version for test)
+     * This method was missing and causing the test to fail
+     * Uses inherited basePageClickElement and basePageWaitForLoad methods
+     */
+    async clickCreateInvoiceButton(): Promise<void> {
+        console.log('Clicking Create Invoice button...');
+        await this.basePageClickElement(this.createInvoiceButton);
+        await this.basePageWaitForLoad();
+        console.log('✓ Create Invoice button clicked');
     }
 
     /**

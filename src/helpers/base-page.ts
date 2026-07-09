@@ -1,5 +1,3 @@
-// src/helpers/base-page.ts
-
 import { Page, Locator, expect } from '@playwright/test';
 
 /**

@@ -1,5 +1,3 @@
-// src/pages/LoginPage.ts
-
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 
@@ -34,7 +32,6 @@ export class LoginPage extends BasePage {
     
     // STEP 1: Initial login button that reveals the login form
     private get initialLoginButton(): Locator {
-        // Using getByRole with button role and name filter
         return this.page.getByRole('button', { name: /login/i });
     }
 
@@ -42,61 +39,33 @@ export class LoginPage extends BasePage {
     
     // Username input field
     private get usernameField(): Locator {
-        // Using getByRole with textbox role and name/label
         return this.page.getByRole('textbox', { name: /loginEmail/i });
     }
 
     // Password input field
     private get passwordField(): Locator {
-        // Using getByRole with textbox role for password (it's still a textbox)
-        // You can also use getByLabel if there's a label
         return this.page.getByRole('textbox', { name: /loginPassword/i });
     }
 
-    // Alternative: Using getByPlaceholder if no label/role
-    //private get passwordFieldByPlaceholder(): Locator {
-      //  return this.page.getByPlaceholder(/password/i);
-    //}
-
     // STEP 2: Submit login button (the actual credential submission)
     private get submitLoginButton(): Locator {
-        // Using getByRole with button role and name filter
-        // This finds a button that has text containing "login" or "sign in"
         return this.page.getByRole('button', { name: /loginSubmit/i });
     }
 
     // Login form container (to verify form is visible)
     private get loginForm(): Locator {
-        // Using getByRole for the form
         return this.page.locator('#login-card');
     }
 
-    // Alternative: Using getByTestId if you have data-testid attributes
-   // private get loginFormByTestId(): Locator {
-     //   return this.page.getByTestId('login-form');
-   // }
-
     // Error message (shows when login fails)
     private get errorMessage(): Locator {
-        // Using getByRole for alert/status messages
         return this.page.getByRole('alert');
     }
 
-    // Alternative: Using getByText for error message
-    //private get errorMessageByText(): Locator {
-        //return this.page.getByText(/error|invalid|incorrect/i);
-    //}
-
     // Dashboard indicator (shows when login succeeds)
     private get dashboardIndicator(): Locator {
-        // Using getByRole for heading or navigation
         return this.page.locator('.dashboard-welcome');
     }
-
-    // Alternative: Using getByTestId
-   // private get dashboardIndicatorByTestId(): Locator {
-       // return this.page.getByTestId('dashboard');
-   // }
 
     constructor(page: Page) {
         super(page); // Call BasePage constructor - REQUIRED when extending

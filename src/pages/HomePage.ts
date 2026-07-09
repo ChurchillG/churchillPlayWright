@@ -1,8 +1,7 @@
-// src/pages/HomePage.ts
-
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 import { AdminPage } from './AdminPage';
+import { InvoicePage } from './InvoicePage';
 
 /**
  * HomePage - Represents the dashboard/home page after login
@@ -39,78 +38,33 @@ export class HomePage extends BasePage {
     
     // STEP 1: Menu button that reveals the dropdown
     private get menuButton(): Locator {
-        // Using getByRole with button role and name filter
        return this.page.getByRole('button', { name: /Menu/i });
     }
 
-    // Alternative: Using getByTestId if available
-    // private get menuButtonByTestId(): Locator {
-    //     return this.page.getByTestId('menu-button');
-    // }
-
-    // Alternative: Using getByLabel
-    // private get menuButtonByLabel(): Locator {
-    //     return this.page.getByLabel(/menu/i);
-    // }
-
     // STEP 2: Admin Panel option in the dropdown menu
     private get adminPanelDropdownOption(): Locator {
-        // Using getByRole with menuitem or link role
         return this.page.getByRole('button', { name: /Admin Panel/i });
     }
 
-    // Alternative: Using getByText for dropdown option
-    // private get adminPanelDropdownOptionByText(): Locator {
-    //     return this.page.getByText(/admin panel/i);
-    // }
-
-    // Alternative: Using getByTestId
-    // private get adminPanelDropdownOptionByTestId(): Locator {
-    //     return this.page.getByTestId('admin-panel-option');
-    // }
-
     // Page indicators - Welcome message
     private get welcomeMessage(): Locator {
-        // Using getByRole for heading
         return this.page.getByRole('heading', { name: /Welcome back, Admin! Here's an overview of your platform./i });
     }
 
-    // Alternative: Using getByTestId
-    // private get welcomeMessageByTestId(): Locator {
-    //     return this.page.getByTestId('welcome');
-    // }
-
     // Dashboard content indicator
     private get dashboardContent(): Locator {
-        // Using getByRole for main content
         return this.page.getByRole('heading', { name: /🔐 Admin Dashboard/i });
     }
-
-    // Alternative: Using getByTestId
-    // private get dashboardContentByTestId(): Locator {
-    //     return this.page.getByTestId('dashboard-content');
-    // }
 
     // Dropdown menu container (to verify dropdown is visible)
     private get dropdownMenu(): Locator {
         return this.page.locator('.nav-dropdown.open');
     }
 
-    // Alternative: Using getByTestId
-    // private get dropdownMenuByTestId(): Locator {
-    //     return this.page.getByTestId('dropdown-menu');
-    // }
-
     // Admin Panel indicator (to verify we're on admin page)
     private get adminPanelIndicator(): Locator {
-        // Using getByRole for heading
         return this.page.getByRole('heading', { name: /🔧 Admin Panel/i });
     }
-
-    // Alternative: Using getByText
-    // private get adminPanelIndicatorByText(): Locator {
-    //     return this.page.getByText(/admin panel/i);
-    // }
 
     constructor(page: Page) {
         super(page); // Call BasePage constructor - REQUIRED when extending
@@ -193,6 +147,38 @@ export class HomePage extends BasePage {
         console.log('✓ Successfully navigated to Admin Panel');
         
         return new AdminPage(this.page);
+    }
+
+    /**
+     * FIXED: Navigate directly to Invoice page through Admin Panel
+     * This method was missing and causing the test to fail
+     * 
+     * @returns InvoicePage - Returns an InvoicePage object for method chaining
+     * 
+     * Usage:
+     * const invoicePage = await homePage.navigateToInvoices();
+     */
+    async navigateToInvoices(): Promise<InvoicePage> {
+        console.log('Navigating to Invoice page...');
+        
+        // STEP 1: Click menu button to reveal dropdown
+        await this.clickMenuButton();
+        
+        // STEP 2: Click Admin Panel option from dropdown
+        await this.clickAdminPanelFromDropdown();
+        
+        // STEP 3: Click Invoices button from Admin Panel
+        const adminPage = new AdminPage(this.page);
+        await adminPage.clickInvoicesButton();
+        
+        // STEP 4: Verify we're on Invoices page
+        await adminPage.verifyOnInvoicesPage();
+        
+        // STEP 5: Click New Invoice button
+        await adminPage.clickNewInvoiceButton();
+        
+        console.log('✓ Successfully navigated to Invoice page');
+        return new InvoicePage(this.page);
     }
 
     /**

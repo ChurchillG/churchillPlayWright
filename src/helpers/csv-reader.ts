@@ -1,5 +1,3 @@
-// src/helpers/csv-reader.ts
-
 import fs from 'fs';
 
 /**

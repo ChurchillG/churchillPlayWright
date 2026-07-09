@@ -1,5 +1,3 @@
-// src/pages/AdminPage.ts
-
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 import { InvoicePage } from './InvoicePage';
@@ -42,67 +40,23 @@ export class AdminPage extends BasePage {
     
     // Page header
     private get adminHeader(): Locator {
-        // Using getByRole for heading
         return this.page.getByRole('heading', { name: /🔧 Admin Panel/i });
     }
 
-    // Alternative: Using CSS selector
-    // private get adminHeader(): Locator {
-    //     return this.page.locator('h1:has-text("Admin"), h2:has-text("Admin Panel"), [data-testid="admin-header"]');
-    // }
-
     // STEP 1: Invoices navigation link in admin panel
     private get invoicesButton(): Locator {
-        // Using getByRole with link role
         return this.page.getByRole('button', { name: /Invoices/i });
     }
 
-    // Alternative: Using getByRole with button role
-    // private get invoicesButton(): Locator {
-    //     return this.page.getByRole('button', { name: /invoices/i });
-    // }
-
-    // Alternative: Using getByText
-    // private get invoicesButton(): Locator {
-    //     return this.page.getByText(/invoices/i);
-    // }
-
-    // Alternative: Using getByTestId
-    // private get invoicesButton(): Locator {
-    //     return this.page.getByTestId('admin-invoices');
-    // }
-
     // STEP 2: Invoices page indicator (to verify we're on invoices page)
     private get invoicesPageIndicator(): Locator {
-        // Using getByRole for heading
         return this.page.getByRole('heading', { name: /🧾 Invoices/i });
     }
 
-    // Alternative: Using getByTestId
-    // private get invoicesPageIndicator(): Locator {
-    //     return this.page.getByTestId('invoices-page');
-    // }
-
     // STEP 3: New Invoice button
     private get newInvoiceButton(): Locator {
-        // Using getByRole with button role
         return this.page.getByRole('button', { name: /➕ New Invoice/i });
     }
-
-    // Alternative: Using getByRole with link role
-    // private get newInvoiceButton(): Locator {
-    //     return this.page.getByRole('link', { name: /new invoice/i });
-    // }
-
-    // Alternative: Using getByText
-    // private get newInvoiceButton(): Locator {
-    //     return this.page.getByText(/new invoice/i);
-    // }
-
-    // Alternative: Using getByTestId
-    // private get newInvoiceButton(): Locator {
-    //     return this.page.getByTestId('new-invoice');
-    // }
 
     constructor(page: Page) {
         super(page); // Call BasePage constructor - REQUIRED when extending

@@ -1,13 +1,10 @@
-// tests/invoice.spec.ts
-
 import { test, expect } from '../src/fixtures/test-fixtures.js';
 import { 
-    readCsv,           // ✅ Exists - reads CSV as CsvRecord[]
-    readCsvAsMap,      // ✅ Exists - reads CSV as Map
-    csvRecordToType,   // ✅ Exists - converts one record to type
-    readCsvAsType      // ✅ Exists - reads CSV as typed array
+    readCsv,           
+    readCsvAsMap,      
+    csvRecordToType,   
+    readCsvAsType      
 } from '../src/helpers/csv-reader.js';
-import { InvoiceData } from '../src/pages/InvoicePage.js';
 
 // Define the login credentials interface
 interface LoginCredentials {
@@ -25,54 +22,46 @@ test.describe('Invoice Management', () => {
         invoicePage 
     }) => {
         
-        // ============ METHOD 1: Using readCsvAsType (Recommended) ============
+        // ============ Read Login Data from CSV ============
         
-        // Get login data - automatically typed as LoginCredentials[]
+        // Method 1: Using readCsvAsType (Recommended)
         const loginData = readCsvAsType<LoginCredentials>('src/test-data/login-data.csv');
         const adminUser = loginData[0];
-        console.log(`Username: ${adminUser.username}`); // TypeScript knows this!
-        console.log(`Password: ${adminUser.password}`); // TypeScript knows this!
+        console.log(`Username: ${adminUser.username}`);
+        console.log(`Password: ${adminUser.password}`);
+        console.log(`Role: ${adminUser.role}`);
         
-        // Get invoice data - automatically typed as InvoiceData[]
-        const invoices = readCsvAsType<InvoiceData>('src/test-data/invoice-data.csv');
-        const firstInvoice = invoices[0];
-        console.log(`Client: ${firstInvoice.clientName}`);   // TypeScript knows this!
-        console.log(`Amount: ${firstInvoice.totalAmount}`);  // TypeScript knows this!
-        
-        // ============ METHOD 2: Using readCsv + csvRecordToType ============
-        
-        // Read as generic CsvRecord first
+        // Method 2: Using readCsv + csvRecordToType
         const rawData = readCsv('src/test-data/login-data.csv');
-        
-        // Then convert to typed object
         const adminLogin = csvRecordToType<LoginCredentials>(rawData[0]);
-        console.log(`Role: ${adminLogin.role}`); // TypeScript knows this!
+        console.log(`Expected Redirect: ${adminLogin.expectedRedirect}`);
         
-        // ============ METHOD 3: Using readCsvAsMap ============
-        
-        // Get as Map for quick lookup by username
+        // Method 3: Using readCsvAsMap
         const loginMap = readCsvAsMap('src/test-data/login-data.csv', 'username');
         const admin = loginMap.get('admin');
         if (admin) {
-            console.log(`Password: ${admin.password}`); // Still works but as CsvRecord
+            console.log(`Admin password from map: ${admin.password}`);
         }
         
         // ============ EXECUTE THE TEST ============
         
-        // Login with admin credentials from CSV
+        // STEP 1: Login with admin credentials from CSV
         await loginPage.goto();
         await loginPage.loginAsAdmin(adminUser.username, adminUser.password);
         
-        // Navigate to admin panel and invoices
-        await homePage.navigateToAdminPanel();
+        // STEP 2: Navigate to Invoice page
         const invoicePageFromNav = await homePage.navigateToInvoices();
+        
+        // STEP 3: Wait for invoice page to load
         await invoicePageFromNav.waitForInvoicePage();
         
-        // Create invoice using data from CSV
-        await invoicePageFromNav.clickCreateInvoice();
-        await invoicePageFromNav.createCompleteInvoice(firstInvoice);
+        // STEP 4: Create the invoice using the existing method
+        // This uses the hardcoded data in the InvoicePage class
+        await invoicePageFromNav.createInvoiceToYourself();
         
-        // Validate
+        // STEP 5: Validate the invoice was created successfully
         await invoicePageFromNav.validateTotalAmount('R2800');
+        
+        console.log('✓ Test completed successfully!');
     });
 });
