@@ -76,7 +76,7 @@ export class InvoicePage extends BasePage {
     
     // Total amount span (to verify R2800)
     private get totalAmountDisplay(): Locator {
-        return this.page.getByText(/R 2 800,00/i);
+        return this.page.getByText(/R\s*2\s*800,00/i).last();
     }
 
     // Due date input (type="date")
