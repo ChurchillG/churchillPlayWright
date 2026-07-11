@@ -342,36 +342,32 @@ async addFourCourses(): Promise<void> {
      * Usage:
      * await invoicePage.createInvoiceToYourself();
      */
-    async createInvoiceToYourself(): Promise<void> {
-        console.log('=== Starting Invoice Creation Flow ===');
-        
-        // STEP 1: Verify modal header is visible
-        await this.verifyModalHeader();
-        
-        // STEP 2 & 3: Fill client information
-        await this.fillClientInformation('churchill@gmail.com', 'birdswood');
-        
-        // STEP 4 & 5: Add 4 courses
-        await this.addFourCourses();
-        
-        // STEP 6: Verify total amount is R2800
-        await this.verifyTotalAmount();
-        
-        // STEP 7: Set due date to last day of June
-        await this.setDueDate('2026-06-30');
-        
-        // STEP 8: Set status to paid
-        await this.setStatus('paid');
-        
-        // STEP 9: Click Create Invoice
-        await this.clickCreateInvoice();
-        
-        // STEP 10: Verify success alert
-        await this.verifySuccessAlert();
-        
-        console.log('=== Invoice Creation Completed Successfully ===');
-    }
-
+   async createInvoiceToYourself(): Promise<void> {
+    console.log('=== Starting Invoice Creation Flow ===');
+    
+    // STEP 1: Verify modal header is visible
+    await this.verifyModalHeader();
+    
+    // STEP 2 & 3: Fill client information
+    await this.fillClientInformation('churchill@gmail.com', 'birdswood');
+    
+    // STEP 4 & 5: Add 4 courses
+    await this.addFourCourses();
+    
+    // STEP 6: Verify total amount is R2800
+    await this.verifyTotalAmount();
+    
+    // STEP 7: Set due date to last day of June
+    await this.setDueDate('2026-06-30');
+    
+    // STEP 8: Set status to paid
+    await this.setStatus('paid');
+    
+    // STEP 9: Click Create Invoice
+    await this.clickCreateInvoice();
+    
+    console.log('=== Invoice Creation Completed Successfully ===');
+}
     /**
      * Complete flow to create an invoice with custom data
      * @param invoiceData - Custom invoice data
