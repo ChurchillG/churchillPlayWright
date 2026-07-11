@@ -2,41 +2,10 @@ import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 import { InvoicePage } from './InvoicePage';
 
-/**
- * AdminPage - Represents the admin panel of the application
- * 
- * EXTENDS BasePage:
- * This means AdminPage inherits all methods from BasePage
- * Examples of inherited methods:
- * - this.basePageGoToUrl()
- * - this.basePageClickElement()
- * - this.basePageEnterText()
- * - this.basePageVerifyElementIsVisible()
- * - this.basePageWaitForElement()
- * - this.basePageIsElementVisible()
- * - this.basePageGetElementText()
- * 
- * This page is accessible after clicking "Admin Panel" from the HomePage
- * Contains administrative features and settings
- * 
- * Flow:
- * Step 1: Click Invoices button
- * Step 2: Verify we're on the Invoices page
- * Step 3: Click New Invoice button
- * 
- * Uses getByRole() for better accessibility and reliability
- */
+
+ 
 export class AdminPage extends BasePage {
     
-    /**
-     * Locators - Using getByRole() for accessibility-first selectors
-     * 
-     * Benefits of getByRole():
-     * - More reliable than CSS selectors
-     * - Better for accessibility testing
-     * - Closer to how users actually interact with the page
-     * - Built-in ARIA role support
-     */
     
     // Page header
     private get adminHeader(): Locator {

@@ -1,24 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 
 /**
- * BasePage - Foundation class for all page objects
- * 
- * This class contains common reusable methods that ALL pages can use.
- * Every page object (LoginPage, HomePage, InvoicePage, etc.) will EXTEND this class.
- * 
- * Key concepts:
- * - 'public page: Page' in constructor is TypeScript shorthand
- *   It automatically creates this.page = page for you
- * - All methods start with 'basePage' prefix to indicate they're from BasePage
- * - These methods can be used by any page that extends BasePage
- * 
  * @example
- * class LoginPage extends BasePage {
- *   async login() {
- *     await this.basePageEnterText(usernameField, 'admin');
- *     await this.basePageClickElement(loginButton);
- *   }
- * }
  */
 export class BasePage {
     

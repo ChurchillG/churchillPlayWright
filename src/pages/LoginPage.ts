@@ -1,34 +1,9 @@
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 
-/**
- * LoginPage - Represents the login page of the application
- * 
- * EXTENDS BasePage:
- * This means LoginPage inherits all methods from BasePage
- * Examples of inherited methods:
- * - this.basePageGoToUrl()
- * - this.basePageClickElement()
- * - this.basePageEnterText()
- * - this.basePageVerifyElementIsVisible()
- * 
- * This page handles a TWO-STEP login process:
- * Step 1: Click the initial login button to reveal the login form
- * Step 2: Enter credentials and click the submit login button
- * 
- * Uses getByRole() for better accessibility and reliability
- */
+
 export class LoginPage extends BasePage {
     
-    /**
-     * Locators - Using getByRole() for accessibility-first selectors
-     * 
-     * Benefits of getByRole():
-     * - More reliable than CSS selectors
-     * - Better for accessibility testing
-     * - Closer to how users actually interact with the page
-     * - Built-in ARIA role support
-     */
     
     // STEP 1: Initial login button that reveals the login form
     private get initialLoginButton(): Locator {

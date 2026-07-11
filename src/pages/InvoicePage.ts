@@ -1,33 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 
-/**
- * InvoicePage - Represents the invoice modal/page
- * 
- * EXTENDS BasePage:
- * This means InvoicePage inherits all methods from BasePage
- * Examples of inherited methods:
- * - this.basePageGoToUrl()
- * - this.basePageClickElement()
- * - this.basePageEnterText()
- * - this.basePageVerifyElementIsVisible()
- * - this.basePageWaitForElement()
- * - this.basePageIsElementVisible()
- * - this.basePageGetElementText()
- * 
- * This page handles invoice creation within a modal:
- * Step 1: Verify invoice modal is visible with header
- * Step 2: Fill in client name and address
- * Step 3: Click Add Course button 4 times
- * Step 4: For each course, select the last valid option from dropdown
- * Step 5: Verify total amount is R2800
- * Step 6: Set due date to last day of June
- * Step 7: Select status (Paid/Pending)
- * Step 8: Click Create Invoice button
- * Step 9: Verify alert success message
- * 
- * Uses getByRole() and getByPlaceholder() for better accessibility and reliability
- */
+
 export class InvoicePage extends BasePage {
     
     /**

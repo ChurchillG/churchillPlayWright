@@ -3,38 +3,11 @@ import { BasePage } from '../helpers/base-page';
 import { AdminPage } from './AdminPage';
 import { InvoicePage } from './InvoicePage';
 
-/**
- * HomePage - Represents the dashboard/home page after login
- * 
- * EXTENDS BasePage:
- * This means HomePage inherits all methods from BasePage
- * Examples of inherited methods:
- * - this.basePageGoToUrl()
- * - this.basePageClickElement()
- * - this.basePageEnterText()
- * - this.basePageVerifyElementIsVisible()
- * - this.basePageWaitForElement()
- * - this.basePageIsElementVisible()
- * - this.basePageGetElementText()
- * 
- * This page handles navigation from the dashboard:
- * Step 1: Click the menu button to reveal the dropdown
- * Step 2: Click Admin Panel option from dropdown
- * Step 3: Verify we're on the Admin Panel page
- * 
- * Uses getByRole() for better accessibility and reliability
- */
+
+ 
 export class HomePage extends BasePage {
     
-    /**
-     * Locators - Using getByRole() for accessibility-first selectors
-     * 
-     * Benefits of getByRole():
-     * - More reliable than CSS selectors
-     * - Better for accessibility testing
-     * - Closer to how users actually interact with the page
-     * - Built-in ARIA role support
-     */
+    
     
     // STEP 1: Menu button that reveals the dropdown
     private get menuButton(): Locator {
@@ -85,7 +58,7 @@ export class HomePage extends BasePage {
 
     /**
      * Verify that we are on the home page
-     * Uses inherited basePageWaitForLoad method
+    
      */
     async verifyOnHomePage(): Promise<void> {
         await this.page.waitForURL('**/dashboard**', { timeout: 10000 });
@@ -94,7 +67,7 @@ export class HomePage extends BasePage {
 
     /**
      * STEP 1: Click the menu button to reveal the dropdown
-     * Uses inherited basePageClickElement and basePageWaitForElement methods
+
      */
     async clickMenuButton(): Promise<void> {
         console.log('Step 1: Clicking menu button to reveal dropdown');
@@ -108,8 +81,6 @@ export class HomePage extends BasePage {
 
     /**
      * STEP 2: Click Admin Panel option from the dropdown menu
-     * This will navigate to the Admin Panel page
-     * Uses inherited basePageClickElement, basePageWaitForLoad, and basePageWaitForElement methods
      */
     async clickAdminPanelFromDropdown(): Promise<void> {
         console.log('Step 2: Clicking Admin Panel option from dropdown');
@@ -123,15 +94,7 @@ export class HomePage extends BasePage {
 
     /**
      * Navigate to Admin Panel using the dropdown menu
-     * Step 1: Click menu button to reveal dropdown
-     * Step 2: Click Admin Panel option from dropdown
-     * Step 3: Verify we're on Admin Panel page
-     * 
      * @returns AdminPanelPage - Returns an AdminPanelPage object for method chaining
-     * 
-     * Usage:
-     * const adminPanelPage = await homePage.navigateToAdminPanel();
-     * await adminPanelPage.clickInvoicesButton();
      */
     async navigateToAdminPanel(): Promise<AdminPage> {
         console.log('Navigating to Admin Panel...');
@@ -192,7 +155,7 @@ export class HomePage extends BasePage {
     /**
      * Check if dropdown menu is currently visible
      * @returns boolean - true if dropdown is visible
-     * Uses inherited basePageIsElementVisible method
+     
      */
     async isDropdownVisible(): Promise<boolean> {
         return await this.basePageIsElementVisible(this.dropdownMenu);
@@ -209,7 +172,7 @@ export class HomePage extends BasePage {
     /**
      * Get all visible options from the dropdown menu
      * @returns string[] - Array of option texts
-     * Uses inherited basePageClickElement method
+     
      */
     async getDropdownOptions(): Promise<string[]> {
         // Click menu to ensure dropdown is open
