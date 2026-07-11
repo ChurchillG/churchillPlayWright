@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from '../helpers/base-page';
 
 /**
@@ -66,9 +66,10 @@ export class InvoicePage extends BasePage {
         return this.page.getByRole('button', { name: /➕ add course/i });
     }
 
-    // Course dropdown - for each course row
-    private getCourseDropdown(index: number): Locator {
-        return this.page.locator(`select:nth-of-type(${index})`);
+    // Course dropdown - always resolves to the next unfilled course row,
+    // since its cell's accessible name is "Select course..." until chosen
+    private get courseDropdown(): Locator {
+        return this.page.getByRole('cell', { name: 'Select course...' }).getByRole('combobox');
     }
 
     // ============ Invoice Details ============
@@ -159,72 +160,72 @@ export class InvoicePage extends BasePage {
      * STEP 3: Click the Add Course button
      * Uses inherited basePageClickElement method
      */
-    async clickAddCourseButton(): Promise<void> {
-        console.log('Clicking Add Course button...');
-        await this.basePageClickElement(this.addCourseButton);
-        await this.page.waitForTimeout(500); // Wait for DOM update
-        console.log(' Add Course button clicked');
-    }
+ async clickAddCourseButton(): Promise<void> {
+    console.log('Clicking Add Course button...');
+    await this.basePageDismissOverlay();
+    await this.basePageClickElement(this.addCourseButton);
+    await this.page.waitForLoadState('networkidle');
+    console.log(' Add Course button clicked');
+}
 
     /**
-     * STEP 4: Select the last valid course option from a dropdown
-     * @param index - Course number (1, 2, 3, or 4)
+     * STEP 4: Select the last valid course option from the next unfilled course dropdown
+     * @param index - Course number (1, 2, 3, or 4) - used only for logging now
      * Uses inherited basePageSelectOption method
      */
-    async selectLastCourseOption(index: number): Promise<void> {
-        console.log(`Selecting last course option for course ${index}...`);
+   async selectLastCourseOption(index: number): Promise<void> {
+    console.log(`Selecting last course option for course ${index}...`);
+    
+    await this.basePageDismissOverlay();
+    
+    const dropdown = this.courseDropdown;
+    
+    await expect(async () => {
+        const optionCount = await dropdown.locator('option').count();
+        expect(optionCount).toBeGreaterThan(1);
+    }).toPass({ timeout: 10000 });
+    
+    const options = await dropdown.locator('option').all();
+    
+    let lastValidIndex = -1;
+    let lastValidText = '';
+    
+    for (let i = options.length - 1; i >= 0; i--) {
+        const text = await options[i].textContent();
+        const value = await options[i].getAttribute('value');
         
-        // Get the dropdown for this course
-        const dropdown = this.getCourseDropdown(index);
-        
-        // Get all options from the dropdown
-        const options = await dropdown.locator('option').all();
-        
-        // Find the last valid option (skip placeholder)
-        let lastValidIndex = -1;
-        let lastValidText = '';
-        
-        for (let i = options.length - 1; i >= 0; i--) {
-            const text = await options[i].textContent();
-            const value = await options[i].getAttribute('value');
-            
-            // Skip the placeholder option
-            if (value && value !== 'select course...' && text && text.trim() !== 'select course...') {
-                lastValidIndex = i;
-                lastValidText = text.trim();
-                break;
-            }
-        }
-        
-        if (lastValidIndex >= 0) {
-            // Select by index
-            await dropdown.selectOption({ index: lastValidIndex });
-            console.log(` Selected course option: ${lastValidText}`);
-        } else {
-            console.log('No valid course options found in dropdown');
+        if (value && value !== '' && text && text.trim() !== 'Select course...') {
+            lastValidIndex = i;
+            lastValidText = text.trim();
+            break;
         }
     }
+    
+    if (lastValidIndex >= 0) {
+        await dropdown.selectOption({ index: lastValidIndex });
+        console.log(` Selected course option: ${lastValidText}`);
+    } else {
+        console.log('No valid course options found in dropdown');
+    }
+}
 
     /**
      * STEP 3 & 4: Add 4 courses by clicking Add Course button 4 times
      * and selecting the last valid option from each dropdown
      */
-    async addFourCourses(): Promise<void> {
-        console.log('Adding 4 courses...');
+async addFourCourses(): Promise<void> {
+    console.log('Adding 4 courses...');
+    
+    for (let i = 1; i <= 4; i++) {
+        // Click Add Course button for every course, including the first
+        await this.clickAddCourseButton();
         
-        // Click Add Course button and select last option for each course
-        for (let i = 1; i <= 4; i++) {
-            if (i > 1) {
-                // Click Add Course button for courses 2, 3, and 4
-                await this.clickAddCourseButton();
-            }
-            
-            // Select the last valid option from the dropdown
-            await this.selectLastCourseOption(i);
-        }
-        
-        console.log(' All 4 courses added');
+        // Select the last valid option from the dropdown
+        await this.selectLastCourseOption(i);
     }
+    
+    console.log(' All 4 courses added');
+}
 
     /**
      * STEP 5: Verify the total amount is R2800
@@ -280,7 +281,7 @@ export class InvoicePage extends BasePage {
 
     /**
      * STEP 7: Set the status of the invoice
-     * @param status - Status value ("Paid" or "Pending")
+     * @param status - Status value ("paid" or "pending", lowercase to match the option values)
      * Uses inherited basePageSelectOption method
      */
     async setStatus(status: string): Promise<void> {
@@ -334,7 +335,7 @@ export class InvoicePage extends BasePage {
      * 5. For each course, select the last valid option from dropdown
      * 6. Verify total amount is R2800
      * 7. Set due date to last day of June (2026-06-30)
-     * 8. Set status to "Paid"
+     * 8. Set status to "paid"
      * 9. Click Create Invoice
      * 10. Verify success alert
      * 
@@ -359,8 +360,8 @@ export class InvoicePage extends BasePage {
         // STEP 7: Set due date to last day of June
         await this.setDueDate('2026-06-30');
         
-        // STEP 8: Set status to Paid
-        await this.setStatus('Paid');
+        // STEP 8: Set status to paid
+        await this.setStatus('paid');
         
         // STEP 9: Click Create Invoice
         await this.clickCreateInvoice();
@@ -379,7 +380,7 @@ export class InvoicePage extends BasePage {
      * await invoicePage.createInvoice({
      *   clientName: 'john@gmail.com',
      *   clientAddress: 'cape town',
-     *   status: 'Pending',
+     *   status: 'pending',
      *   dueDate: '2026-07-15'
      * });
      */
@@ -410,7 +411,7 @@ export class InvoicePage extends BasePage {
         await this.setDueDate(invoiceData.dueDate || '2026-06-30');
         
         // STEP 8: Set status (with default)
-        await this.setStatus(invoiceData.status || 'Paid');
+        await this.setStatus(invoiceData.status || 'paid');
         
         // STEP 9: Click Create Invoice
         await this.clickCreateInvoice();

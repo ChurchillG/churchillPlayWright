@@ -157,6 +157,15 @@ export class BasePage {
     }
 
     /**
+ * Click a neutral, harmless spot on the page to dismiss any lingering
+ * dropdown/overlay state that's blocking the next interaction.
+ */
+async basePageDismissOverlay() {
+    await this.page.mouse.click(5, 5);
+    await this.page.waitForTimeout(200);
+}
+
+    /**
      * Wait for the page to finish loading
      * Waits for network activity to be idle
      * 
