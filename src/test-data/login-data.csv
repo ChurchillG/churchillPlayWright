@@ -1,2 +1,2 @@
-username;password;role;expectedRedirect
-admin@gmail.com;@12345678;Administrator;/dashboard
+username;password
+admin@gmail.com;@12345678

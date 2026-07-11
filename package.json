@@ -1,21 +1,32 @@
 {
-  "name": "churchill-playwright",
+  "name": "churchillplaywright",
   "version": "1.0.0",
-  "description": "A Playwright-based test automation framework for end-to-end testing",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
-    "test:ui": "playwright test --ui",
-    "test:invoice": "playwright test tests/invoice.spec.ts",
-    "test:chrome": "playwright test --project=chromium",
-    "report": "playwright show-report",
-    "clean": "rimraf test-results && rimraf playwright-report"
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:report": "npx playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
-    "@types/node": "^20.10.0",
-    "csv-parse": "^5.6.0",
-    "typescript": "^5.3.0"
-  }
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
+  },
+  "description": "A Playwright-based test automation framework designed for comprehensive end-to-end testing.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChurchillG/churchillPlayWright.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChurchillG/churchillPlayWright/issues"
+  },
+  "homepage": "https://github.com/ChurchillG/churchillPlayWright#readme"
 }

@@ -32,24 +32,24 @@ export class LoginPage extends BasePage {
     
     // STEP 1: Initial login button that reveals the login form
     private get initialLoginButton(): Locator {
-        return this.page.getByRole('button', { name: /login/i });
+        return this.page.getByRole('button', { name: /🔑 Login/i });
     }
 
     // STEP 2: Login form elements that appear after clicking initial login button
     
     // Username input field
     private get usernameField(): Locator {
-        return this.page.getByRole('textbox', { name: /loginEmail/i });
+        return this.page.getByRole('textbox', { name: /Email/i });
     }
 
     // Password input field
     private get passwordField(): Locator {
-        return this.page.getByRole('textbox', { name: /loginPassword/i });
+        return this.page.getByRole('textbox', { name: /Password/i });
     }
 
     // STEP 2: Submit login button (the actual credential submission)
     private get submitLoginButton(): Locator {
-        return this.page.getByRole('button', { name: /loginSubmit/i });
+        return this.page.getByRole('button', { name: /Login/i });
     }
 
     // Login form container (to verify form is visible)

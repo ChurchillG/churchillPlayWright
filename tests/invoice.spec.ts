@@ -1,17 +1,10 @@
-import { test, expect } from '../src/fixtures/test-fixtures.js';
-import { 
-    readCsv,           
-    readCsvAsMap,      
-    csvRecordToType,   
-    readCsvAsType      
-} from '../src/helpers/csv-reader.js';
+import { test, expect } from '../src/fixtures/test-fixtures';
+import { readCsvAsType } from '../src/helpers/csv-reader';
 
 // Define the login credentials interface
 interface LoginCredentials {
     username: string;
     password: string;
-    role: string;
-    expectedRedirect: string;
 }
 
 test.describe('Invoice Management', () => {
@@ -24,24 +17,9 @@ test.describe('Invoice Management', () => {
         
         // ============ Read Login Data from CSV ============
         
-        // Method 1: Using readCsvAsType (Recommended)
         const loginData = readCsvAsType<LoginCredentials>('src/test-data/login-data.csv');
         const adminUser = loginData[0];
         console.log(`Username: ${adminUser.username}`);
-        console.log(`Password: ${adminUser.password}`);
-        console.log(`Role: ${adminUser.role}`);
-        
-        // Method 2: Using readCsv + csvRecordToType
-        const rawData = readCsv('src/test-data/login-data.csv');
-        const adminLogin = csvRecordToType<LoginCredentials>(rawData[0]);
-        console.log(`Expected Redirect: ${adminLogin.expectedRedirect}`);
-        
-        // Method 3: Using readCsvAsMap
-        const loginMap = readCsvAsMap('src/test-data/login-data.csv', 'username');
-        const admin = loginMap.get('admin');
-        if (admin) {
-            console.log(`Admin password from map: ${admin.password}`);
-        }
         
         // ============ EXECUTE THE TEST ============
         
